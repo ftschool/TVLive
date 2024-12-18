@@ -1,10 +1,11 @@
+import os
+import os.path
 import tkinter as tk
-from tkinter import scrolledtext
 from tkinter import ttk
 
 import utils.constants as constants
 from utils.config import config
-from utils.tools import get_urls_from_file
+from utils.tools import resource_path
 
 
 class SubscribeUI:
@@ -31,33 +32,33 @@ class SubscribeUI:
 
         frame_subscribe_subscribe_urls = tk.Frame(root)
         frame_subscribe_subscribe_urls.pack(fill=tk.X)
+        frame_subscribe_urls_column1 = tk.Frame(frame_subscribe_subscribe_urls)
+        frame_subscribe_urls_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_subscribe_urls_column2 = tk.Frame(frame_subscribe_subscribe_urls)
+        frame_subscribe_urls_column2.pack(side=tk.LEFT, fill=tk.Y)
 
         self.subscribe_urls_label = tk.Label(
-            frame_subscribe_subscribe_urls, text="订阅源:", width=9
+            frame_subscribe_urls_column1, text="订阅源:", width=9
         )
         self.subscribe_urls_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.subscribe_urls_text = scrolledtext.ScrolledText(
-            frame_subscribe_subscribe_urls, height=40
+        self.subscribe_file_button = tk.ttk.Button(
+            frame_subscribe_urls_column2,
+            text="编辑",
+            command=self.edit_subscribe_file,
         )
-        self.subscribe_urls_text.pack(
-            side=tk.LEFT, padx=4, pady=8, expand=True, fill=tk.BOTH
-        )
-        self.subscribe_urls_text.insert(tk.END, ",".join(get_urls_from_file(constants.subscribe_path)))
-        self.subscribe_urls_text.bind("<KeyRelease>", self.update_subscribe_urls)
+        self.subscribe_file_button.pack(side=tk.LEFT, padx=4, pady=0)
 
     def update_open_subscribe(self):
         config.set("Settings", "open_subscribe", str(self.open_subscribe_var.get()))
 
-    def update_subscribe_urls(self, event):
-        config.set(
-            "Settings",
-            "subscribe_urls",
-            self.subscribe_urls_text.get(1.0, tk.END),
-        )
+    def edit_subscribe_file(self):
+        path = resource_path(constants.subscribe_path)
+        if os.path.exists(path):
+            os.system(f'notepad.exe {path}')
 
     def change_entry_state(self, state):
         for entry in [
             "open_subscribe_checkbutton",
-            "subscribe_urls_text",
+            "subscribe_file_button",
         ]:
             getattr(self, entry).config(state=state)

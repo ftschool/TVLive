@@ -99,6 +99,10 @@ class ConfigManager:
         return self.config.getint("Settings", "ipv6_num", fallback=15)
 
     @property
+    def ipv6_support(self):
+        return self.config.getboolean("Settings", "ipv6_support", fallback=False)
+
+    @property
     def ipv_limit(self):
         return {
             "ipv4": self.ipv4_num,
@@ -165,16 +169,6 @@ class ConfigManager:
     @property
     def recent_days(self):
         return self.config.getint("Settings", "recent_days", fallback=30)
-
-    @property
-    def url_keywords_blacklist(self):
-        return [
-            keyword.strip()
-            for keyword in self.config.get(
-                "Settings", "url_keywords_blacklist", fallback=""
-            ).split(",")
-            if keyword.strip()
-        ]
 
     @property
     def source_file(self):
@@ -248,10 +242,6 @@ class ConfigManager:
         return self.config.getboolean("Settings", "open_sort", fallback=True)
 
     @property
-    def open_ffmpeg(self):
-        return self.config.getboolean("Settings", "open_ffmpeg", fallback=True)
-
-    @property
     def open_update_time(self):
         return self.config.getboolean("Settings", "open_update_time", fallback=True)
 
@@ -306,18 +296,6 @@ class ConfigManager:
         return config.getint("Settings", "online_search_page_num", fallback=1)
 
     @property
-    def delay_weight(self):
-        return self.config.getfloat("Settings", "delay_weight", fallback=0.5)
-
-    @property
-    def speed_weight(self):
-        return self.config.getfloat("Settings", "speed_weight", fallback=0.5)
-
-    @property
-    def resolution_weight(self):
-        return self.config.getfloat("Settings", "resolution_weight", fallback=0.5)
-
-    @property
     def open_empty_category(self):
         return self.config.getboolean("Settings", "open_empty_category", fallback=True)
 
@@ -361,43 +339,18 @@ class ConfigManager:
         """
         Copy config files to current directory
         """
-        user_source_file = resource_path(
-            self.config.get("Settings", "source_file", fallback="config/demo.txt")
-        )
-        user_config_path = resource_path("config/user_config.ini")
-        default_config_path = resource_path("config/config.ini")
-        user_config_file = (
-            user_config_path
-            if os.path.exists(user_config_path)
-            else default_config_path
-        )
         dest_folder = os.path.join(os.getcwd(), "config")
-        files_to_copy = [user_source_file, user_config_file]
         try:
-            if os.path.exists(dest_folder):
-                if not os.path.isdir(dest_folder):
-                    os.remove(dest_folder)
+            src_dir = resource_path("config")
+            if os.path.exists(src_dir):
+                if not os.path.exists(dest_folder):
                     os.makedirs(dest_folder, exist_ok=True)
-            else:
-                os.makedirs(dest_folder, exist_ok=True)
-            for src_file in files_to_copy:
-                dest_path = os.path.join(dest_folder, os.path.basename(src_file))
-                if os.path.abspath(src_file) == os.path.abspath(
-                        dest_path
-                ) or os.path.exists(dest_path):
-                    continue
-                shutil.copy(src_file, dest_folder)
-            src_rtp_dir = resource_path("config/rtp")
-            dest_rtp_dir = os.path.join(dest_folder, "rtp")
-            if os.path.exists(src_rtp_dir):
-                if not os.path.exists(dest_rtp_dir):
-                    os.makedirs(dest_rtp_dir, exist_ok=True)
 
-                for root, _, files in os.walk(src_rtp_dir):
+                for root, _, files in os.walk(src_dir):
                     for file in files:
                         src_file_path = os.path.join(root, file)
-                        relative_path = os.path.relpath(src_file_path, src_rtp_dir)
-                        dest_file_path = os.path.join(dest_rtp_dir, relative_path)
+                        relative_path = os.path.relpath(src_file_path, src_dir)
+                        dest_file_path = os.path.join(dest_folder, relative_path)
 
                         dest_file_dir = os.path.dirname(dest_file_path)
                         if not os.path.exists(dest_file_dir):
