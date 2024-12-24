@@ -55,12 +55,12 @@ def get_channel_data_from_file(channels, file, use_old, whitelist):
                     category_dict[name] = []
                 if name in whitelist:
                     for whitelist_url in whitelist[name]:
-                        category_dict[name].append((whitelist_url, None, None, "important"))
+                        category_dict[name].append((whitelist_url, None, None, "whitelist"))
                 if use_old and url:
                     info = url.partition("$")[2]
                     origin = None
                     if info and info.startswith("!"):
-                        origin = "important"
+                        origin = "whitelist"
                     data = (url, None, None, origin)
                     if data not in category_dict[name]:
                         category_dict[name].append(data)
@@ -74,6 +74,7 @@ def get_channel_items():
     user_source_file = resource_path(config.source_file)
     channels = defaultdict(lambda: defaultdict(list))
     whitelist = get_name_urls_from_file(constants.whitelist_path)
+    whitelist_urls = get_urls_from_file(constants.whitelist_path)
     whitelist_len = len(list(whitelist.keys()))
     if whitelist_len:
         print(f"Found {whitelist_len} channel in whitelist")
@@ -100,6 +101,12 @@ def get_channel_items():
                             if name in old_result[cate]:
                                 for info in old_result[cate][name]:
                                     if info:
+                                        try:
+                                            if info[3] == "whitelist" and not any(
+                                                    url in info[0] for url in whitelist_urls):
+                                                continue
+                                        except:
+                                            pass
                                         pure_url = info[0].partition("$")[0]
                                         if pure_url not in urls:
                                             channels[cate][name].append(info)
@@ -449,13 +456,16 @@ def append_data_to_info_data(info_data, cate, name, data, origin=None, check=Tru
             if not url_origin:
                 continue
             if url:
-                pure_url = url.partition("$")[0]
-                if pure_url in urls:
+                url_partition = url.partition("$")
+                pure_url = url_partition[0]
+                url_info = url_partition[2]
+                white_info = url_info and url_info.startswith("!")
+                if (pure_url in urls) and not white_info:
                     continue
-                if whitelist and check_url_by_keywords(url, whitelist):
-                    url_origin = "important"
+                if white_info or (whitelist and check_url_by_keywords(url, whitelist)):
+                    url_origin = "whitelist"
                 if (
-                        url_origin == "important"
+                        url_origin == "whitelist"
                         or (not check)
                         or (
                         check and check_url_ipv_type(pure_url) and not check_url_by_keywords(url, blacklist))

@@ -157,10 +157,10 @@ def get_total_urls(info_list, ipv_type_prefer, origin_type_prefer):
         if not origin:
             continue
 
-        if origin == "important":
-            im_url, _, im_info = url.partition("$")
-            im_info_value = im_info.partition("!")[2]
-            total_urls.append(f"{im_url}${im_info_value}" if im_info_value else im_url)
+        if origin == "whitelist":
+            w_url, _, w_info = url.partition("$")
+            w_info_value = w_info.partition("!")[2] or "白名单"
+            total_urls.append(add_url_info(w_url, w_info_value))
             continue
 
         if origin == "subscribe" and "/rtp/" in url:

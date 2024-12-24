@@ -61,6 +61,7 @@ class TkinterUI:
             "open_service": self.default_ui.open_service_var.get(),
             "open_sort": self.speed_ui.open_sort_var.get(),
             "open_subscribe": self.subscribe_ui.open_subscribe_var.get(),
+            "open_supply": self.prefer_ui.open_supply_var.get(),
             "open_update": self.default_ui.open_update_var.get(),
             "open_update_time": self.default_ui.open_update_time_var.get(),
             "open_url_info": self.default_ui.open_url_info_var.get(),

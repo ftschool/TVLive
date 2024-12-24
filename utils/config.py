@@ -303,6 +303,10 @@ class ConfigManager:
     def app_port(self):
         return os.environ.get("APP_PORT") or self.config.getint("Settings", "app_port", fallback=8000)
 
+    @property
+    def open_supply(self):
+        return self.config.getboolean("Settings", "open_supply", fallback=True)
+
     def load(self):
         """
         Load the config

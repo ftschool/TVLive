@@ -48,6 +48,22 @@ class PreferUI:
             input.entry.bind("<KeyRelease>", input.update_input)
             self.ipv_type_input.append(input)
 
+        frame_prefer_open_supply = tk.Frame(root)
+        frame_prefer_open_supply.pack(fill=tk.X)
+        self.open_supply_label = tk.Label(
+            frame_prefer_open_supply, text="开启补偿模式:", width=12
+        )
+        self.open_supply_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_supply_var = tk.BooleanVar(value=config.open_supply)
+        self.open_supply_checkbutton = ttk.Checkbutton(
+            frame_prefer_open_supply,
+            variable=self.open_supply_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_supply,
+        )
+        self.open_supply_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+
     def get_origin_type_prefer_index(self, origin_type_prefer):
         index_list = [None, None, None, None]
         origin_type_prefer_obj = {
@@ -67,12 +83,16 @@ class PreferUI:
             self.prefer_ipv_type_combo.get(),
         )
 
+    def update_open_supply(self):
+        config.set("Settings", "open_supply", str(self.open_supply_var.get()))
+
     def change_entry_state(self, state):
         for option in self.origin_type_prefer_options:
             option.change_state(state)
         self.prefer_ipv_type_combo.config(state=state)
         for input in self.ipv_type_input:
             input.change_state(state)
+        self.open_supply_checkbutton.config(state=state)
 
 
 class IpvNumInput:
