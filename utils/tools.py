@@ -13,7 +13,7 @@ from time import time
 
 import requests
 from bs4 import BeautifulSoup
-from flask import render_template_string, send_file
+from flask import send_file, make_response
 
 import utils.constants as constants
 from utils.config import config
@@ -133,13 +133,16 @@ def get_resolution_value(resolution_str):
     """
     Get resolution value from string
     """
-    pattern = r"(\d+)[xX*](\d+)"
-    match = re.search(pattern, resolution_str)
-    if match:
-        width, height = map(int, match.groups())
-        return width * height
-    else:
-        return 0
+    try:
+        if resolution_str:
+            pattern = r"(\d+)[xX*](\d+)"
+            match = re.search(pattern, resolution_str)
+            if match:
+                width, height = map(int, match.groups())
+                return width * height
+    except:
+        pass
+    return 0
 
 
 def get_total_urls(info_list, ipv_type_prefer, origin_type_prefer):
@@ -168,11 +171,6 @@ def get_total_urls(info_list, ipv_type_prefer, origin_type_prefer):
 
         if origin_prefer_bool and (origin not in origin_type_prefer):
             continue
-
-        if config.open_filter_resolution and resolution:
-            resolution_value = get_resolution_value(resolution)
-            if resolution_value < config.min_resolution_value:
-                continue
 
         pure_url, _, info = url.partition("$")
         if not info:
@@ -408,10 +406,9 @@ def get_result_file_content(show_content=False, file_type=None):
             content = file.read()
     else:
         content = constants.waiting_tip
-    return render_template_string(
-        "<head><link rel='icon' href='{{ url_for('static', filename='images/favicon.ico') }}' type='image/x-icon'></head><pre>{{ content }}</pre>",
-        content=content,
-    )
+    response = make_response(content)
+    response.mimetype = 'text/plain'
+    return response
 
 
 def remove_duplicates_from_tuple_list(tuple_list, seen, flag=None, force_str=None):
