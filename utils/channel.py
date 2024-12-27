@@ -603,7 +603,7 @@ async def process_sort_channel_list(data, ipv6=False, callback=None):
     open_filter_speed = config.open_filter_speed
     open_filter_resolution = config.open_filter_resolution
     min_speed = config.min_speed
-    min_resolution = config.min_resolution
+    min_resolution = config.min_resolution_value
     for cate, obj in data.items():
         for name, info_list in obj.items():
             info_list = sort_urls(name, info_list, supply=open_supply, filter_speed=open_filter_speed,

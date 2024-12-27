@@ -70,14 +70,12 @@ async def get_m3u8_headers(url: str, session: ClientSession = None, timeout: int
 
 def check_m3u8_valid(headers: CIMultiDictProxy[str] | dict[any, any]) -> bool:
     """
-    Check the m3u8 url is valid
+    Check if the m3u8 url is valid
     """
-    content_type = headers.get('Content-Type')
-    if content_type:
-        content_type = content_type.lower()
-        if 'application/vnd.apple.mpegurl' in content_type:
-            return True
-    return False
+    content_type = headers.get('Content-Type', '').lower()
+    if not content_type:
+        return False
+    return any(item in content_type for item in ['application/vnd.apple.mpegurl', 'audio/mpegurl', 'audio/x-mpegurl'])
 
 
 async def get_speed_m3u8(url: str, filter_resolution: bool = config.open_filter_resolution,
@@ -86,47 +84,47 @@ async def get_speed_m3u8(url: str, filter_resolution: bool = config.open_filter_
     Get the speed of the m3u8 url with a total timeout
     """
     info = {'speed': None, 'delay': None, 'resolution': None}
+    location = None
     try:
         url = quote(url, safe=':/?$&=@[]').partition('$')[0]
         async with ClientSession(connector=TCPConnector(ssl=False), trust_env=True) as session:
             headers = await get_m3u8_headers(url, session)
-            if check_m3u8_valid(headers):
-                location = headers.get('Location')
-                if location:
-                    info.update(await get_speed_m3u8(location, filter_resolution, timeout))
-                else:
-                    m3u8_obj = m3u8.load(url, timeout=2)
-                    playlists = m3u8_obj.data.get('playlists')
+            location = headers.get('Location')
+            if location:
+                info.update(await get_speed_m3u8(location, filter_resolution, timeout))
+            elif check_m3u8_valid(headers):
+                m3u8_obj = m3u8.load(url, timeout=2)
+                playlists = m3u8_obj.data.get('playlists')
+                segments = m3u8_obj.segments
+                if not segments and playlists:
+                    parsed_url = urlparse(url)
+                    uri = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path.rsplit('/', 1)[0]}/{playlists[0].get('uri', '')}"
+                    uri_headers = await get_m3u8_headers(uri, session)
+                    if not check_m3u8_valid(uri_headers):
+                        if uri_headers.get('Content-Length'):
+                            info.update(await get_speed_with_download(uri, session, timeout))
+                        raise Exception("Invalid m3u8")
+                    m3u8_obj = m3u8.load(uri, timeout=2)
                     segments = m3u8_obj.segments
-                    if not segments and playlists:
-                        parsed_url = urlparse(url)
-                        uri = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path.rsplit('/', 1)[0]}/{playlists[0].get('uri', '')}"
-                        uri_headers = await get_m3u8_headers(uri, session)
-                        if not check_m3u8_valid(uri_headers):
-                            if uri_headers.get('Content-Length'):
-                                info.update(await get_speed_with_download(uri, session, timeout))
-                            raise Exception("Invalid m3u8")
-                        m3u8_obj = m3u8.load(uri, timeout=2)
-                        segments = m3u8_obj.segments
-                    if not segments:
-                        raise Exception("Segments not found")
-                    ts_urls = [segment.absolute_uri for segment in segments]
-                    speed_list = []
-                    start_time = time()
-                    for ts_url in ts_urls:
-                        if time() - start_time > timeout:
-                            break
-                        download_info = await get_speed_with_download(ts_url, session, timeout)
-                        speed_list.append(download_info['speed'])
-                        if info['delay'] is None and download_info['delay'] is not None:
-                            info['delay'] = download_info['delay']
-                    info['speed'] = (sum(speed_list) / len(speed_list)) if speed_list else 0
+                if not segments:
+                    raise Exception("Segments not found")
+                ts_urls = [segment.absolute_uri for segment in segments]
+                speed_list = []
+                start_time = time()
+                for ts_url in ts_urls:
+                    if time() - start_time > timeout:
+                        break
+                    download_info = await get_speed_with_download(ts_url, session, timeout)
+                    speed_list.append(download_info['speed'])
+                    if info['delay'] is None and download_info['delay'] is not None:
+                        info['delay'] = download_info['delay']
+                info['speed'] = (sum(speed_list) / len(speed_list)) if speed_list else 0
             elif headers.get('Content-Length'):
                 info.update(await get_speed_with_download(url, session, timeout))
     except:
         pass
     finally:
-        if filter_resolution and info['delay'] is not None:
+        if filter_resolution and not location and info['delay'] is not None:
             info['resolution'] = await get_resolution_ffprobe(url, timeout)
         return info
 
@@ -299,7 +297,7 @@ async def get_speed(url, ipv6_proxy=None, filter_resolution=config.open_filter_r
 
 
 def sort_urls(name, data, supply=config.open_supply, filter_speed=config.open_filter_speed, min_speed=config.min_speed,
-              filter_resolution=config.open_filter_resolution, min_resolution=config.min_resolution,
+              filter_resolution=config.open_filter_resolution, min_resolution=config.min_resolution_value,
               logger=None):
     """
     Sort the urls with info
