@@ -16,6 +16,7 @@ from utils.config import config
 from utils.speed import (
     get_speed,
     sort_urls,
+    check_ffmpeg_installed_status
 )
 from utils.tools import (
     get_name_url,
@@ -572,6 +573,7 @@ async def process_sort_channel_list(data, ipv6=False, callback=None):
     """
     ipv6_proxy = None if (not config.open_ipv6 or ipv6) else constants.ipv6_proxy
     open_filter_resolution = config.open_filter_resolution
+    get_resolution = open_filter_resolution and check_ffmpeg_installed_status()
     sort_timeout = config.sort_timeout
     need_sort_data = copy.deepcopy(data)
     process_nested_dict(need_sort_data, seen=set(), flag=r"cache:(.*)", force_str="!")
@@ -588,7 +590,7 @@ async def process_sort_channel_list(data, ipv6=False, callback=None):
             limited_get_speed(
                 info,
                 ipv6_proxy=ipv6_proxy,
-                filter_resolution=open_filter_resolution,
+                filter_resolution=get_resolution,
                 timeout=sort_timeout,
                 callback=callback,
             )
@@ -601,7 +603,6 @@ async def process_sort_channel_list(data, ipv6=False, callback=None):
     logger = get_logger(constants.sort_log_path, level=INFO, init=True)
     open_supply = config.open_supply
     open_filter_speed = config.open_filter_speed
-    open_filter_resolution = config.open_filter_resolution
     min_speed = config.min_speed
     min_resolution = config.min_resolution_value
     for cate, obj in data.items():
@@ -625,7 +626,9 @@ def write_channel_to_file(data, ipv6=False, callback=None):
     Write channel to file
     """
     try:
-        path = "output/result_new.txt"
+        path = constants.result_path
+        if not os.path.exists("output"):
+            os.makedirs("output")
         no_result_name = []
         open_empty_category = config.open_empty_category
         ipv_type_prefer = list(config.ipv_type_prefer)
