@@ -72,12 +72,14 @@
 - 接口源：
 
 ```bash
-https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.m3u
+https://ghproxy.cc/https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.m3u
 ```
 
 ```bash
-https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.txt
+https://ghproxy.cc/https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.txt
 ```
+
+🙏 感谢由[ghproxy.cc](https://ghproxy.cc)提供的代理加速服务
 
 或
 
@@ -92,7 +94,7 @@ https://cdn.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.txt
 - 数据源：
 
 ```bash
-https://raw.githubusercontent.com/Guovin/iptv-api/gd/source.json
+https://ghproxy.cc/https://raw.githubusercontent.com/Guovin/iptv-api/gd/source.json
 ```
 
 或
@@ -209,10 +211,22 @@ pipenv run ui
 docker pull guovern/iptv-api:latest
 ```
 
+🚀 代理加速（推荐国内用户使用）：
+
+```bash
+docker pull docker.1ms.run/guovern/iptv-api:latest
+```
+
 - iptv-api:lite：
 
 ```bash
 docker pull guovern/iptv-api:lite
+```
+
+🚀 代理加速（推荐国内用户使用）：
+
+```bash
+docker pull docker.1ms.run/guovern/iptv-api:lite
 ```
 
 2. 运行容器：

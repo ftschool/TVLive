@@ -72,12 +72,14 @@
 - Interface source:
 
 ```bash
-https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.m3u
+https://ghproxy.cc/https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.m3u
 ```
 
 ```bash
-https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.txt
+https://ghproxy.cc/https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/result.txt
 ```
+
+🙏 Thanks to [ghproxy.cc](https://ghproxy.cc) for providing proxy acceleration services
 
 or
 
@@ -92,7 +94,7 @@ https://cdn.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.txt
 - Data source:
 
 ```bash
-https://raw.githubusercontent.com/Guovin/iptv-api/gd/source.json
+https://ghproxy.cc/https://raw.githubusercontent.com/Guovin/iptv-api/gd/source.json
 ```
 
 or
@@ -215,10 +217,22 @@ It's recommended to try each one and choose the version that suits you
 docker pull guovern/iptv-api:latest
 ```
 
+🚀 Proxy acceleration (recommended for users in China):
+
+```bash
+docker pull docker.1ms.run/guovern/iptv-api:latest
+```
+
 - iptv-api:lite
 
 ```bash
 docker pull guovern/iptv-api:lite
+```
+
+🚀 Proxy acceleration (recommended for users in China):
+
+```bash
+docker pull docker.1ms.run/guovern/iptv-api:lite
 ```
 
 2. Run the container:
