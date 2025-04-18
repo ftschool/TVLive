@@ -12,7 +12,6 @@ from utils.retry import retry_func
 from utils.tools import (
     merge_objects,
     get_pbar_remaining,
-    add_url_info,
     get_name_url
 )
 
@@ -45,8 +44,6 @@ async def get_channels_by_subscribe_urls(
             0,
         )
     hotel_name = constants.origin_map["hotel"]
-    multicast_name = constants.origin_map["multicast"]
-    subscribe_name = constants.origin_map["subscribe"]
 
     def process_subscribe_channels(subscribe_info: str | dict) -> defaultdict:
         region = ""
@@ -93,20 +90,11 @@ async def get_channels_by_subscribe_urls(
                     url = item["url"]
                     if name and url:
                         url = url.partition("$")[0]
-                        if not multicast:
-                            info = (
-                                f"{region}{hotel_name}"
-                                if hotel
-                                else (
-                                    f"{multicast_name}"
-                                    if "/rtp/" in url
-                                    else f"{subscribe_name}"
-                                )
-                            )
-                            if in_whitelist:
-                                info = "!"
-                            url = add_url_info(url, info)
                         value = url if multicast else {"url": url, "headers": item.get("headers", None)}
+                        if in_whitelist:
+                            value["origin"] = "whitelist"
+                        if hotel:
+                            value["extra_info"] = f"{region}{hotel_name}"
                         name = format_channel_name(name)
                         if name in channels:
                             if multicast:
